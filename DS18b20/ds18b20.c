@@ -1,50 +1,50 @@
 #include "ds18b20.h"
 #include "delay.h"	
 
-//³õÊ¼»¯DS18B20µÄIO¿Ú DQ Í¬Ê±¼ì²âDSµÄ´æÔÚ
-//·µ»Ø1:²»´æÔÚ
-//·µ»Ø0:´æÔÚ    	 
+//åˆå§‹åŒ–DS18B20çš„IOå£ DQ åŒæ—¶æ£€æµ‹DSçš„å­˜åœ¨
+//è¿”å›1:ä¸å­˜åœ¨
+//è¿”å›0:å­˜åœ¨    	 
 u8 DS18B20_Init(void)
 {
  	GPIO_InitTypeDef  GPIO_InitStructure;
  	
- 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);	 //Ê¹ÄÜPORTA¿ÚÊ±ÖÓ 
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);	 //ä½¿èƒ½PORTAå£æ—¶é’Ÿ 
 	
- 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;				//PORTA0 ÍÆÍìÊä³ö
+ 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;		//PORTA0 æ¨æŒ½è¾“å‡º
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		  
  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
  	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
- 	GPIO_SetBits(GPIOA,GPIO_Pin_0);    //Êä³ö1
+ 	GPIO_SetBits(GPIOA,GPIO_Pin_0);    //è¾“å‡º1
 
 	DS18B20_Rst();
 
 	return DS18B20_Check();
 } 
-//¸´Î»DS18B20
+//å¤ä½DS18B20
 void DS18B20_Rst(void)	   
 {                 
-	DS18B20_IO_OUT(); //SET PA0 OUTPUT
-    DS18B20_DQ_OUT=0; //×ÜÏßÀ­µÍ
-    delay_us(750);    //À­µÍ750us  ÖÁÉÙ480us
-    DS18B20_DQ_OUT=1; //ÊÍ·Å×ÜÏß µÈ´ıDS18B20»Ø¸´Ò»¸öÂö³å
+    	DS18B20_IO_OUT(); //SET PA0 OUTPUT
+    	DS18B20_DQ_OUT=0; //æ€»çº¿æ‹‰ä½
+    	delay_us(750);    //æ‹‰ä½750us  è‡³å°‘480us
+    	DS18B20_DQ_OUT=1; //é‡Šæ”¾æ€»çº¿ ç­‰å¾…DS18B20å›å¤ä¸€ä¸ªè„‰å†²
 	delay_us(68);    //60-75 
 }
-//µÈ´ıDS18B20µÄ»ØÓ¦
-//·µ»Ø1:Î´¼ì²âµ½DS18B20µÄ´æÔÚ
-//·µ»Ø0:´æÔÚ
+//ç­‰å¾…DS18B20çš„å›åº”
+//è¿”å›1:æœªæ£€æµ‹åˆ°DS18B20çš„å­˜åœ¨
+//è¿”å›0:å­˜åœ¨
 u8 DS18B20_Check(void) 	   
 {   
 	u8 retry=0;
 	DS18B20_IO_IN();//SET PA0 INPUT	 
-    while (DS18B20_DQ_IN&&retry<200)//¶ÁDQ
+   	 while (DS18B20_DQ_IN&&retry<200)//è¯»DQ
 	{
 		retry++;
 		delay_us(1);
 	};	 
 	if(retry>=200)return 1;
 	else retry=0;
-    while (!DS18B20_DQ_IN&&retry<240)
+	while (!DS18B20_DQ_IN&&retry<240)
 	{
 		retry++;
 		delay_us(1);
@@ -52,115 +52,108 @@ u8 DS18B20_Check(void)
 	if(retry>=240)return 1;	    
 	return 0;
 }
-//´ÓDS18B20¶ÁÈ¡Ò»¸öÎ»
-//·µ»ØÖµ£º1/0
+//ä»DS18B20è¯»å–ä¸€ä¸ªä½
+//è¿”å›å€¼ï¼š1/0
 u8 DS18B20_Read_Bit(void) 			 // read one bit
 {
-    u8 data;
+    	u8 data;
 	DS18B20_IO_OUT();//SET PA0 OUTPUT
-    DS18B20_DQ_OUT=0; 
+	DS18B20_DQ_OUT=0; 
 	delay_us(2);
-    DS18B20_DQ_OUT=1; 
+    	DS18B20_DQ_OUT=1; 
 	DS18B20_IO_IN();//SET PA0 INPUT
 	delay_us(12);
 	if(DS18B20_DQ_IN)data=1;
-    else data=0;	 
-    delay_us(50);           
-    return data;
+    	else data=0;	 
+    	delay_us(50);           
+    	return data;
 }
-//´ÓDS18B20¶ÁÈ¡Ò»¸ö×Ö½Ú
-//·µ»ØÖµ£º¶Áµ½µÄÊı¾İ
+//ä»DS18B20è¯»å–ä¸€ä¸ªå­—èŠ‚
+//è¿”å›å€¼ï¼šè¯»åˆ°çš„æ•°æ®
 u8 DS18B20_Read_Byte(void)    // read one byte
 {        
-    u8 i,j,dat;
-    dat=0;
+    	u8 i,j,data;
+    	data=0;
 	for (i=1;i<=8;i++) 
 	{
-        j=DS18B20_Read_Bit();
-        dat=(j<<7)|(dat>>1);
-    }						    
-    return dat;
+        	j=DS18B20_Read_Bit();
+        	data=(j<<7)|(data>>1);
+   	 }						    
+    	return data;
 }
-//Ğ´Ò»¸ö×Ö½Úµ½DS18B20
-//dat£ºÒªĞ´ÈëµÄ×Ö½Ú
+//å†™ä¸€ä¸ªå­—èŠ‚åˆ°DS18B20
+//datï¼šè¦å†™å…¥çš„å­—èŠ‚
 void DS18B20_Write_Byte(u8 dat)     
  {             
-    u8 j;
-    u8 testb;
+  	u8 j;
+    	u8 testb;
 	DS18B20_IO_OUT();//SET PA0 OUTPUT;
-    for (j=1;j<=8;j++) 
+    	for (j=1;j<=8;j++) 
 	{
-        testb=dat&0x01;
-        dat=dat>>1;
-        if (testb) 
-        {
-            DS18B20_DQ_OUT=0;// Write 1
-            delay_us(2);                            
-            DS18B20_DQ_OUT=1;
-            delay_us(60);             
-        }
+      		testb=dat&0x01;
+        	dat=dat>>1;
+        	if (testb) 
+        	{
+            		DS18B20_DQ_OUT=0;// Write 1
+            		delay_us(2);                            
+            		DS18B20_DQ_OUT=1;
+            		delay_us(60);             
+        	}
         else 
         {
-            DS18B20_DQ_OUT=0;// Write 0
-            delay_us(60);             
-            DS18B20_DQ_OUT=1;
-            delay_us(2);                          
+            	DS18B20_DQ_OUT=0;// Write 0
+            	delay_us(60);             
+            	DS18B20_DQ_OUT=1;
+            	delay_us(2);                          
         }
     }
 }
-//¿ªÊ¼ÎÂ¶È×ª»»
+//å¼€å§‹æ¸©åº¦è½¬æ¢
 void DS18B20_Start(void)// ds1820 start convert
 {   						               
-    DS18B20_Rst();	   
-	DS18B20_Check();	 		//³õÊ¼»¯
-    DS18B20_Write_Byte(SKIP_ROM);// skip rom
-    DS18B20_Write_Byte(CONVERT_T);// convert T ÃüÁî ¿ªÊ¼²âÁ¿ÖÜÎ§»·¾³±äÁ¿
+    	DS18B20_Rst();	   
+	DS18B20_Check();	 		//åˆå§‹åŒ–
+    	DS18B20_Write_Byte(SKIP_ROM);// skip rom
+    	DS18B20_Write_Byte(CONVERT_T);// convert T å‘½ä»¤ å¼€å§‹æµ‹é‡å‘¨å›´ç¯å¢ƒå˜é‡
 } 
  
-//´Óds18b20µÃµ½ÎÂ¶ÈÖµ
-//¾«¶È£º0.1C
-//·µ»ØÖµ£ºÎÂ¶ÈÖµ £¨-550~1250£© 
+//ä»ds18b20å¾—åˆ°æ¸©åº¦å€¼
+//ç²¾åº¦ï¼š0.1C
+//è¿”å›å€¼ï¼šæ¸©åº¦å€¼ ï¼ˆ-550~1250ï¼‰ 
 short DS18B20_Get_Temp(void)
 {
-    u8 temp;
-    u8 TL,TH;
+    	u8 temp;
+    	u8 TL,TH;
 	short tem;
-    DS18B20_Start ();//²âÁ¿µÄ¹ı³ÌÍê³ÉÖ®ºóÓĞÒ»¶¨µÄÊ±¼ä ÔÙÈ¥¶Áscratchpad
-    DS18B20_Rst();
-    DS18B20_Check(); //×î¶à750ms 
-    DS18B20_Write_Byte(SKIP_ROM);// skip rom
-    DS18B20_Write_Byte(READ_SCRATCHPAD);// read scratchpad     
-    TL=DS18B20_Read_Byte(); // LSB   read byte0
-    TH=DS18B20_Read_Byte(); // MSB   read byte1
+    	DS18B20_Start ();//æµ‹é‡çš„è¿‡ç¨‹å®Œæˆä¹‹åæœ‰ä¸€å®šçš„æ—¶é—´ å†å»è¯»scratchpad
+    	DS18B20_Rst();
+    	DS18B20_Check(); //æœ€å¤š750ms 
+    	DS18B20_Write_Byte(SKIP_ROM);// skip rom
+    	DS18B20_Write_Byte(READ_SCRATCHPAD);// read scratchpad     
+    	TL=DS18B20_Read_Byte(); // LSB   read byte0
+    	TH=DS18B20_Read_Byte(); // MSB   read byte1
 	    	  
-    if(TH>7)//00000111
-    {
-        TH=~TH;
-        TL=~TL; 
-        temp=0;//ÎÂ¶ÈÎª¸º  
-    }else temp=1;//ÎÂ¶ÈÎªÕı	  	  
-    tem=TH; //»ñµÃ¸ß°ËÎ»
-    tem<<=8;    
-    tem+=TL;//»ñµÃµ×°ËÎ»
-    tem=(float)tem*0.625;//×ª»» ÓÒÒÆ4Î»    
-	if(temp)return tem; //·µ»ØÎÂ¶ÈÖµ
+    	if(TH>7)//00000111
+    	{
+        	TH=~TH;
+        	TL=~TL; 
+        	temp=0;//æ¸©åº¦ä¸ºè´Ÿ  
+    	}else temp=1;//æ¸©åº¦ä¸ºæ­£	  	  
+    	tem=TH; //è·å¾—é«˜å…«ä½
+    	tem<<=8;    
+    	tem+=TL;//è·å¾—ä½å…«ä½
+    	tem=(float)tem*0.625;//è½¬æ¢ å³ç§»4ä½    
+	if(temp)return tem; //è¿”å›æ¸©åº¦å€¼
 	else return -tem;    
 } 
  
 u8 IsTooHot(void){
 	short temperature;
-	u8 t=0;
-	while(1){
-		if(t%10==0){//Ã¿100ms¶ÁÈ¡Ò»´Î
-			temperature=DS18B20_Get_Temp();
-			if(temperature<0){
-				temperature=-temperature;
-			}
-			if(temperature/10>49)return CLOSE;
-			else return CONTINUE;
-		}
-		delay_ms(10);
-		t++;
-		if(t==10)	t=0;
+	temperature=DS18B20_Get_Temp();
+	if(temperature<0){
+		temperature=-temperature;
 	}
+
+	if(temperature/10>49)return CLOSE;
+	 return CONTINUE;
 }
